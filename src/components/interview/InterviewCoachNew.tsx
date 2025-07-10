@@ -4,17 +4,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Mic, Video, Camera, BarChart3, Play, Pause } from "lucide-react";
+import { Mic, Video, Camera, BarChart3, Play, Pause, Brain, TrendingUp, Users } from "lucide-react";
 import EnhancedCamera from './EnhancedCamera';
 import { RealtimeAudio } from './RealtimeAudio';
-import { MetricsProvider } from '@/context/MetricsContext';
+import AIInterviewEngine from './AIInterviewEngine';
+import StudentDashboard from './StudentDashboard';
+import { MetricsProvider, useMetrics } from '@/context/MetricsContext';
 import { SettingsProvider } from '@/lib/settings-provider';
 import { useInterviewSimulator } from '@/hooks/useInterviewSimulator';
 import InterviewSimulation from './InterviewSimulation';
 
 const InterviewCoachNew: React.FC = () => {
-  const [activeMode, setActiveMode] = useState<'practice' | 'simulation'>('practice');
-  const [selectedTab, setSelectedTab] = useState('overview');
+  const [activeMode, setActiveMode] = useState<'practice' | 'simulation' | 'ai-coach'>('ai-coach');
+  const [selectedTab, setSelectedTab] = useState('ai-coach');
   
   const {
     jobRole,
@@ -35,7 +37,11 @@ const InterviewCoachNew: React.FC = () => {
 
   const handleInterviewComplete = (results: any) => {
     console.log("Interview completed with results:", results);
-    // Handle interview completion - could show results modal, etc.
+  };
+
+  const handleAISessionComplete = (results: any) => {
+    console.log("AI session completed:", results);
+    // Could show detailed results or redirect to dashboard
   };
 
   if (interviewStarted) {
@@ -60,9 +66,9 @@ const InterviewCoachNew: React.FC = () => {
           <div className="flex flex-col gap-6">
             {/* Header */}
             <div className="flex flex-col gap-2">
-              <h1 className="text-3xl font-bold">Enhanced Interview Coach</h1>
+              <h1 className="text-3xl font-bold">AI-Powered Interview Coach</h1>
               <p className="text-muted-foreground">
-                Practice your interview skills with real-time feedback on speech, posture, and body language
+                Advanced AI coaching with real-time feedback, personalized questions, and adaptive learning
               </p>
             </div>
 
@@ -70,13 +76,27 @@ const InterviewCoachNew: React.FC = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Select Interview Mode</CardTitle>
-                <CardDescription>Choose between practice mode or full simulation</CardDescription>
+                <CardDescription>Choose your preferred practice experience</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex gap-4">
                   <Button
+                    variant={activeMode === 'ai-coach' ? 'default' : 'outline'}
+                    onClick={() => {
+                      setActiveMode('ai-coach');
+                      setSelectedTab('ai-coach');
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <Brain className="h-4 w-4" />
+                    AI Coach
+                  </Button>
+                  <Button
                     variant={activeMode === 'practice' ? 'default' : 'outline'}
-                    onClick={() => setActiveMode('practice')}
+                    onClick={() => {
+                      setActiveMode('practice');
+                      setSelectedTab('overview');
+                    }}
                     className="flex items-center gap-2"
                   >
                     <Camera className="h-4 w-4" />
@@ -94,7 +114,87 @@ const InterviewCoachNew: React.FC = () => {
               </CardContent>
             </Card>
 
-            {activeMode === 'practice' ? (
+            {activeMode === 'ai-coach' ? (
+              <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+                <TabsList className="grid grid-cols-3 mb-8">
+                  <TabsTrigger value="ai-coach">AI Interview</TabsTrigger>
+                  <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+                  <TabsTrigger value="progress">Analytics</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="ai-coach">
+                  <div className="space-y-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Brain className="h-5 w-5" />
+                          AI-Powered Interview Experience
+                        </CardTitle>
+                        <CardDescription>
+                          Personalized questions, real-time feedback, and adaptive difficulty based on your performance
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-center gap-4 mb-4">
+                          <Badge variant="outline">Adaptive Questions</Badge>
+                          <Badge variant="outline">Real-time Analysis</Badge>
+                          <Badge variant="outline">Personalized Feedback</Badge>
+                          <Badge variant="outline">Progress Tracking</Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <AIInterviewEngineWrapper onSessionComplete={handleAISessionComplete} />
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="dashboard">
+                  <StudentDashboard />
+                </TabsContent>
+                
+                <TabsContent value="progress">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5" />
+                        Advanced Analytics
+                      </CardTitle>
+                      <CardDescription>
+                        Detailed performance insights and improvement recommendations
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <h3 className="font-semibold">Performance Trends</h3>
+                          <div className="h-48 bg-muted rounded-lg flex items-center justify-center">
+                            <p className="text-muted-foreground">Performance chart will appear here</p>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-4">
+                          <h3 className="font-semibold">AI Insights</h3>
+                          <div className="space-y-3">
+                            <div className="p-3 border rounded-lg">
+                              <h4 className="font-medium text-sm">Recommendation</h4>
+                              <p className="text-sm text-muted-foreground">Focus on providing specific examples in behavioral questions</p>
+                            </div>
+                            <div className="p-3 border rounded-lg">
+                              <h4 className="font-medium text-sm">Next Goal</h4>
+                              <p className="text-sm text-muted-foreground">Improve technical question response depth</p>
+                            </div>
+                            <div className="p-3 border rounded-lg">
+                              <h4 className="font-medium text-sm">Strength</h4>
+                              <p className="text-sm text-muted-foreground">Excellent communication clarity and structure</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            ) : activeMode === 'practice' ? (
               <Tabs value={selectedTab} onValueChange={setSelectedTab}>
                 <TabsList className="grid grid-cols-4 mb-8">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -269,6 +369,20 @@ const InterviewCoachNew: React.FC = () => {
         </div>
       </MetricsProvider>
     </SettingsProvider>
+  );
+};
+
+// Wrapper component to access metrics context
+const AIInterviewEngineWrapper: React.FC<{ onSessionComplete: (results: any) => void }> = ({ onSessionComplete }) => {
+  const metrics = useMetrics();
+  
+  return (
+    <AIInterviewEngine
+      mediaMetrics={metrics}
+      voiceMetrics={{ wordsPerMinute: 150, fillerWords: 2 }}
+      userProfile={{ industry: 'Technology', experience: 'Mid-level', jobRole: 'Software Engineer' }}
+      onSessionComplete={onSessionComplete}
+    />
   );
 };
 
